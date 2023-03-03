@@ -30,8 +30,11 @@ def get_service_labels(service):
         dict: A dictionary containing the labels for the service.
 
     Raises:
+        ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
+    if not service:
+        raise ValueError("Service name not provided")
     try:
         # Get the service object using the Docker client
         service = client.services.get(service)
@@ -52,8 +55,11 @@ def can_autoscale(service):
         bool: True if autoscaling is allowed for the service, False otherwise.
 
     Raises:
+        ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
+    if not service:
+        raise ValueError("Service name not provided")
     try:
         # Get the labels for the service
         labels = get_service_labels(service)
@@ -62,7 +68,7 @@ def can_autoscale(service):
     except docker.errors.NotFound as e:
         logger.error(f"Error: Service not found - {e}")
         raise
-
+        
 def scale_service(service, replicas):
     """
     Scales a Docker service to the specified number of replicas.
@@ -72,9 +78,14 @@ def scale_service(service, replicas):
         replicas (int): The number of replicas to scale the service to.
 
     Raises:
+        ValueError: If the service name or number of replicas is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
         docker.errors.APIError: If there is an error updating the service mode.
     """
+    if not service:
+        raise ValueError("Service name not provided")
+    if not replicas:
+        raise ValueError("Number of replicas not provided")
     try:
         # Check if autoscaling is allowed for the service
         if can_autoscale(service):
@@ -92,4 +103,7 @@ def scale_service(service, replicas):
         raise
     except docker.errors.APIError as e:
         logger.error(f"Error: Failed to update service - {e}")
+        raise
+    except ValueError as e:
+        logger.error(f"Error: Invalid input - {e}")
         raise
