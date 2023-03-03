@@ -16,10 +16,14 @@ def get_service_labels(service):
     Raises:
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
-    # Get the service object using the Docker client
-    service = client.services.get(service)
-    # Extract the labels from the service object
-    return service.attrs['Spec']['Labels']
+    try:
+        # Get the service object using the Docker client
+        service = client.services.get(service)
+        # Extract the labels from the service object
+        return service.attrs['Spec']['Labels']
+    except docker.errors.NotFound as e:
+        print(f"Error: Service not found - {e}")
+        raise
 
 def can_autoscale(service):
     """
@@ -34,10 +38,14 @@ def can_autoscale(service):
     Raises:
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
-    # Get the labels for the service
-    labels = get_service_labels(service)
-    # Check if the service has the "swarm.autoscaler" label set to "true"
-    return labels.get('swarm.autoscaler') == 'true'
+    try:
+        # Get the labels for the service
+        labels = get_service_labels(service)
+        # Check if the service has the "swarm.autoscaler" label set to "true"
+        return labels.get('swarm.autoscaler') == 'true'
+    except docker.errors.NotFound as e:
+        print(f"Error: Service not found - {e}")
+        raise
 
 def scale_service(service, replicas):
     """
@@ -51,14 +59,21 @@ def scale_service(service, replicas):
         docker.errors.NotFound: If the service with the specified name or ID is not found.
         docker.errors.APIError: If there is an error updating the service mode.
     """
-    # Check if autoscaling is allowed for the service
-    if can_autoscale(service):
-        # Get the service object using the Docker client
-        service = client.services.get(service)
-        # Update the service to the specified number of replicas
-        service.update(mode=service.mode.with_replicas(replicas))
-        # Print a message indicating that the service was scaled
-        print(f"Scaled {service.name} to {replicas} replicas")
-    else:
-        # Print a message indicating that autoscaling is not allowed for the service
-        print(f"Autoscaling not allowed for {service.name}")
+    try:
+        # Check if autoscaling is allowed for the service
+        if can_autoscale(service):
+            # Get the service object using the Docker client
+            service = client.services.get(service)
+            # Update the service to the specified number of replicas
+            service.update(mode=service.mode.with_replicas(replicas))
+            # Print a message indicating that the service was scaled
+            print(f"Scaled {service.name} to {replicas} replicas")
+        else:
+            # Print a message indicating that autoscaling is not allowed for the service
+            print(f"Autoscaling not allowed for {service.name}")
+    except docker.errors.NotFound as e:
+        print(f"Error: Service not found - {e}")
+        raise
+    except docker.errors.APIError as e:
+        print(f"Error: Failed to update service - {e}")
+        raise
