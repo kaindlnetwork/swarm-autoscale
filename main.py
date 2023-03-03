@@ -52,24 +52,55 @@ def get_service_labels(service):
 def can_autoscale(service):
     """
     Checks if a Docker service is allowed to be autoscaled.
+    Autoscaling is allowed only if:
+    - The service has the "swarm.autoscaler" label set to "true".
+    - The integer value of the "swarm.autoscaler.maximum" label (if it exists)
+      is greater than the current number of replicas.
+
     Args:
         service (str): The name or ID of the Docker service.
+
     Returns:
         bool: True if autoscaling is allowed for the service, False otherwise.
+
     Raises:
         ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
     if not service:
         raise ValueError("Service name not provided")
+
     try:
         # Get the labels for the service
         labels = get_service_labels(service)
         # Check if the service has the "swarm.autoscaler" label set to "true"
-        return labels.get('swarm.autoscaler') == 'true'
+        autoscale_enabled = labels.get('swarm.autoscaler') == 'true'
+
+        if autoscale_enabled:
+            # Check if the service has a "swarm.autoscaler.maximum" label
+            max_replicas_label = labels.get('swarm.autoscaler.maximum')
+            if max_replicas_label is not None:
+                try:
+                    # Attempt to parse the label value as an integer
+                    max_replicas = int(max_replicas_label)
+                    # Check if the current number of replicas is less than the maximum
+                    current_replicas = get_service_replicas(service)
+                    return current_replicas < max_replicas
+                except ValueError:
+                    # If the label value is not a valid integer, log an error and disable autoscaling
+                    logger.error(f"Error: Invalid value for 'swarm.autoscaler.maximum' label: {max_replicas_label}")
+                    return False
+            else:
+                # If the "swarm.autoscaler.maximum" label does not exist, autoscaling is allowed
+                return True
+        else:
+            # If the "swarm.autoscaler" label is not set to "true", autoscaling is not allowed
+            return False
+
     except docker.errors.NotFound as error:
         logger.error(f"Error: Service not found - {error}")
         raise
+
 
 def scale_service(service, replicas):
     """
