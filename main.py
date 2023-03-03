@@ -72,11 +72,9 @@ def can_autoscale(service):
 def scale_service(service, replicas):
     """
     Scales a Docker service to the specified number of replicas.
-
     Args:
         service (str): The name or ID of the Docker service.
         replicas (int): The number of replicas to scale the service to.
-
     Raises:
         ValueError: If the service name or number of replicas is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
@@ -90,20 +88,20 @@ def scale_service(service, replicas):
         # Check if autoscaling is allowed for the service
         if can_autoscale(service):
             # Get the service object using the Docker client
-            service = client.services.get(service)
+            service_obj = client.services.get(service)
             # Update the service to the specified number of replicas
-            service.update(mode=service.mode.with_replicas(replicas))
+            service_obj.update(mode=service_obj.mode.with_replicas(replicas))
             # Log a message indicating that the service was scaled
-            logger.info(f"Scaled {service.name} to {replicas} replicas")
+            logger.info(f"Scaled {service_obj.name} to {replicas} replicas")
         else:
             # Log a message indicating that autoscaling is not allowed for the service
-            logger.warning(f"Autoscaling not allowed for {service.name}")
-    except docker.errors.NotFound as e:
-        logger.error(f"Error: Service not found - {e}")
+            logger.warning(f"Autoscaling not allowed for {service}")
+    except docker.errors.NotFound as ex:
+        logger.error(f"Error: Service not found - {ex}")
         raise
-    except docker.errors.APIError as e:
-        logger.error(f"Error: Failed to update service - {e}")
+    except docker.errors.APIError as ex:
+        logger.error(f"Error: Failed to update service - {ex}")
         raise
-    except ValueError as e:
-        logger.error(f"Error: Invalid input - {e}")
+    except ValueError as ex:
+        logger.error(f"Error: Invalid input - {ex}")
         raise
