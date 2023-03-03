@@ -47,13 +47,10 @@ def get_service_labels(service):
 def can_autoscale(service):
     """
     Checks if a Docker service is allowed to be autoscaled.
-
     Args:
         service (str): The name or ID of the Docker service.
-
     Returns:
         bool: True if autoscaling is allowed for the service, False otherwise.
-
     Raises:
         ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
@@ -65,9 +62,10 @@ def can_autoscale(service):
         labels = get_service_labels(service)
         # Check if the service has the "swarm.autoscaler" label set to "true"
         return labels.get('swarm.autoscaler') == 'true'
-    except docker.errors.NotFound as e:
-        logger.error(f"Error: Service not found - {e}")
+    except docker.errors.NotFound as error:
+        logger.error(f"Error: Service not found - {error}")
         raise
+
         
 def scale_service(service, replicas):
     """
