@@ -9,23 +9,25 @@ try:
 except ImportError as e:
     logging.error("Failed to import docker library: %s", e)
 
-# Create a Docker client object using the local environment
-client = docker.from_env()
-
-# Create a logger object
+# Set up logger to write logs to stdout
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Create a file handler and set its log level to INFO
-file_handler = logging.FileHandler('autoscaler.log')
-file_handler.setLevel(logging.INFO)
+# Create a stream handler and set its log level to INFO
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
 
-# Create a formatter and set it as the file handler's formatter
+# Create a formatter and set it as the stream handler's formatter
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
-# Add the file handler to the logger
-logger.addHandler(file_handler)
+# Add the stream handler to the logger
+logger.addHandler(stream_handler)
+
+# Create a Docker client object using the local environment
+docker_socket = os.getenv('DOCKERSOCKET', 'unix://var/run/docker.sock')
+client_kwargs = {'base_url': docker_socket} if docker_socket else {}
+client = docker.from_env(**client_kwargs)
 
 def get_service_labels(service):
     """
