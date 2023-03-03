@@ -1,3 +1,7 @@
+"""
+This module provides functions for managing Docker services.
+"""
+
 import logging
 import docker
 
@@ -63,7 +67,6 @@ def can_autoscale(service):
         logger.error(f"Error: Service not found - {error}")
         raise
 
-        
 def scale_service(service, replicas):
     """
     Scales a Docker service to the specified number of replicas.
