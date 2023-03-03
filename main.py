@@ -150,3 +150,43 @@ def scale_service(service, replicas):
     except ValueError as ex:
         logger.error("I001: Invalid input - %s", ex)
         raise
+
+def scale_service_linear(service, action):
+    """
+    Scales a Docker service by one replica in the specified direction.
+    Args:
+        service (str): The name or ID of the Docker service.
+        action (str): The scaling action to perform ("up" or "down").
+    Raises:
+        ValueError: If the service name or scaling action is not provided.
+        docker.errors.NotFound: If the service with the specified name or ID is not found.
+        docker.errors.APIError: If there is an error updating the service mode.
+    """
+    if not service:
+        raise ValueError("Service name not provided")
+    if not action:
+        raise ValueError("Scaling action not provided")
+    try:
+        # Get the current number of replicas for the service
+        service_obj = client.services.get(service)
+        current_replicas = service_obj.attrs['Spec']['Mode']['Replicated']['Replicas']
+
+        # Calculate the new number of replicas based on the scaling action
+        if action == "up":
+            new_replicas = current_replicas + 1
+        elif action == "down":
+            new_replicas = current_replicas - 1
+        else:
+            raise ValueError("Invalid scaling action")
+
+        # Scale the service to the new number of replicas
+        scale_service(service, new_replicas)
+    except docker.errors.NotFound as ex:
+        logger.error("Error: Service not found - %s", ex)
+        raise
+    except docker.errors.APIError as ex:
+        logger.error("Error: Failed to update service - %s", ex)
+        raise
+    except ValueError as ex:
+        logger.error("Error: Invalid input - %s", ex)
+        raise
