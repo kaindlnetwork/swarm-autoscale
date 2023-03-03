@@ -29,26 +29,33 @@ docker_socket = os.getenv('DOCKERSOCKET', 'unix://var/run/docker.sock')
 client_kwargs = {'base_url': docker_socket} if docker_socket else {}
 client = docker.from_env(**client_kwargs)
 
-def get_service_labels(service):
+def get_service_labels(service: str, client: docker.DockerClient) -> Dict[str, str]:
     """
     Retrieves the labels for a Docker service.
+
     Args:
-        service (str): The name or ID of the Docker service.
+        service: The name or ID of the Docker service.
+        client: A Docker client object.
+
     Returns:
-        dict: A dictionary containing the labels for the service.
+        A dictionary containing the labels for the service.
+
     Raises:
         ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
     """
     if not service:
         raise ValueError("Service name not provided")
+
     try:
         # Get the service object using the Docker client
-        service = client.services.get(service)
+        service_obj = client.services.get(service)
+
         # Extract the labels from the service object
-        return service.attrs['Spec']['Labels']
+        labels = service_obj.attrs['Spec']['Labels']
+        return labels
     except docker.errors.NotFound as ex:
-        logger.error("Error: Service not found - %s", ex)
+        logger.error("Error: Service '%s' not found - %s", service, ex)
         raise
 
 def can_autoscale(service):
