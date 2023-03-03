@@ -9,6 +9,22 @@ try:
 except ImportError as e:
     logging.error("Failed to import docker library: %s", e)
 
+try:
+    from flask import Flask
+except ImportError as e:
+    logging.error("Failed to import flask library: %s", e)
+
+app = Flask(__name__)
+
+@app.route('/health')
+def healthcheck():
+    # Perform healthcheck logic here
+    return 'OK'
+
+if __name__ == '__main__':
+    app.run(port=3000)
+
+    
 # Set up logger to write logs to stdout
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
