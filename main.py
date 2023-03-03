@@ -3,7 +3,11 @@ This module provides functions for managing Docker services.
 """
 
 import logging
-import docker
+
+try:
+    import docker
+except ImportError as e:
+    logging.error("Failed to import docker library: %s", e)
 
 # Create a Docker client object using the local environment
 client = docker.from_env()
