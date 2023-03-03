@@ -22,13 +22,10 @@ logger.addHandler(file_handler)
 def get_service_labels(service):
     """
     Retrieves the labels for a Docker service.
-
     Args:
         service (str): The name or ID of the Docker service.
-
     Returns:
         dict: A dictionary containing the labels for the service.
-
     Raises:
         ValueError: If the service name is not provided.
         docker.errors.NotFound: If the service with the specified name or ID is not found.
@@ -40,8 +37,8 @@ def get_service_labels(service):
         service = client.services.get(service)
         # Extract the labels from the service object
         return service.attrs['Spec']['Labels']
-    except docker.errors.NotFound as e:
-        logger.error(f"Error: Service not found - {e}")
+    except docker.errors.NotFound as ex:
+        logger.error("Error: Service not found - %s", ex)
         raise
 
 def can_autoscale(service):
