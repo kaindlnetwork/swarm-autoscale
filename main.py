@@ -87,16 +87,16 @@ def scale_service(service, replicas):
             # Update the service to the specified number of replicas
             service_obj.update(mode=service_obj.mode.with_replicas(replicas))
             # Log a message indicating that the service was scaled
-            logger.info(f"Scaled {service_obj.name} to {replicas} replicas")
+            logger.info("Scaled %s to %d replicas", service_obj.name, replicas)
         else:
             # Log a message indicating that autoscaling is not allowed for the service
-            logger.warning(f"Autoscaling not allowed for {service}")
+            logger.warning("Autoscaling not allowed for %s", service)
     except docker.errors.NotFound as ex:
-        logger.error(f"Error: Service not found - {ex}")
+        logger.error("Error: Service not found - %s", ex)
         raise
     except docker.errors.APIError as ex:
-        logger.error(f"Error: Failed to update service - {ex}")
+        logger.error("Error: Failed to update service - %s", ex)
         raise
     except ValueError as ex:
-        logger.error(f"Error: Invalid input - {ex}")
+        logger.error("Error: Invalid input - %s", ex)
         raise
