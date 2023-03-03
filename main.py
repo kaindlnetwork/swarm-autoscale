@@ -119,13 +119,15 @@ def scale_service(service, replicas):
         service (str): The name or ID of the Docker service.
         replicas (int): The number of replicas to scale the service to.
     Raises:
-        ValueError: If the service name or number of replicas is not provided.
-        docker.errors.NotFound: If the service with the specified name or ID is not found.
-        docker.errors.APIError: If there is an error updating the service mode.
+        I001: If the service name or number of replicas is not provided.
+        E002: If the service with the specified name or ID is not found.
+        E003: If there is an error updating the service mode.
     """
     if not service:
+        logger.error("I001: Service name not provided")
         raise ValueError("Service name not provided")
     if not replicas:
+        logger.error("I001: Number of replicas not provided")
         raise ValueError("Number of replicas not provided")
     try:
         # Check if autoscaling is allowed for the service
@@ -135,16 +137,16 @@ def scale_service(service, replicas):
             # Update the service to the specified number of replicas
             service_obj.update(mode=service_obj.mode.with_replicas(replicas))
             # Log a message indicating that the service was scaled
-            logger.info("Scaled %s to %d replicas", service_obj.name, replicas)
+            logger.info("I002: Scaled %s to %d replicas", service_obj.name, replicas)
         else:
             # Log a message indicating that autoscaling is not allowed for the service
-            logger.warning("Autoscaling not allowed for %s", service)
+            logger.warning("I003: Autoscaling not allowed for %s", service)
     except docker.errors.NotFound as ex:
-        logger.error("Error: Service not found - %s", ex)
+        logger.error("E002: Service not found - %s", ex)
         raise
     except docker.errors.APIError as ex:
-        logger.error("Error: Failed to update service - %s", ex)
+        logger.error("E003: Failed to update service - %s", ex)
         raise
     except ValueError as ex:
-        logger.error("Error: Invalid input - %s", ex)
+        logger.error("I001: Invalid input - %s", ex)
         raise
