@@ -1,5 +1,5 @@
-import docker
 import logging
+import docker
 
 # Create a Docker client object using the local environment
 client = docker.from_env()
